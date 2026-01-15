@@ -1,0 +1,33 @@
+training:
+  output_dir: "./outputs/ltc_qwen3_14b"
+
+  # Optimizer
+  optimizer: "adamw"
+  learning_rate: 1.0e-4
+  weight_decay: 0.01
+
+  # Learning rate scheduler
+  lr_scheduler: "cosine"
+  warmup_steps: 1000
+  total_steps: 50000
+
+  # Batch
+  batch_size: 64
+  gradient_accumulation_steps: 1
+
+  # Loss weights
+  lambda_coverage: 0.1
+  lambda_orthogonality: 0.01
+  num_sampled_queries: 128
+
+  # Data
+  data_sources:
+    - "gsm8k"
+    - "mbpp"
+  max_samples_per_source: 1000
+  max_seq_length: 2048
+
+  # Logging and saving
+  logging_steps: 100
+  eval_steps: 1000
+  save_steps: 5000

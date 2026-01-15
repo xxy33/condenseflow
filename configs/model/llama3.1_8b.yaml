@@ -1,0 +1,14 @@
+model:
+  name_or_path: "meta-llama/Llama-3.1-8B"
+  torch_dtype: "bfloat16"
+  device_map: "auto"
+
+  # Model architecture parameters for LTC initialization
+  num_layers: 32
+  num_kv_heads: 8
+  head_dim: 128
+  kv_dim: 1024  # num_kv_heads * head_dim
+
+ltc:
+  compression_dim: 64
+  init_std: 0.02

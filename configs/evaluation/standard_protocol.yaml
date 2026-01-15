@@ -1,0 +1,28 @@
+evaluation:
+  protocol: "standard"  # 4-Agent pipeline
+
+  benchmarks:
+    - "aime2024"
+    - "aime2025"
+    - "hmmt2025"
+    - "mbpp_plus"
+    - "gpqa_diamond"
+    - "medqa"
+    - "livecodebench"
+
+  communication_modes:
+    - "text"
+    - "dense"
+    - "condenseflow"
+
+  # Generation parameters
+  generation:
+    max_new_tokens: 2048
+    temperature: 0.6
+    top_p: 0.95
+    do_sample: true
+
+  # Evaluation settings
+  num_runs: 5  # Multiple runs to compute mean and variance
+
+  output_dir: "./results/standard_protocol"

@@ -1,0 +1,27 @@
+evaluation:
+  protocol: "stress_test"  # Solver <-> Critic iteration
+
+  benchmarks:
+    - "aime2024"
+    - "aime2025"
+
+  communication_modes:
+    - "text"
+    - "dense"
+    - "condenseflow"
+
+  # Stress test parameters
+  max_rounds: 20
+  early_stop: true
+
+  # Generation parameters
+  generation:
+    max_new_tokens: 2048
+    temperature: 0.6
+    top_p: 0.95
+    do_sample: true
+
+  # Evaluation settings
+  num_runs: 5
+
+  output_dir: "./results/stress_test"
