@@ -1,5 +1,5 @@
 """
-Pipeline模块测试
+Pipeline Module Tests
 """
 
 import pytest
@@ -7,26 +7,26 @@ from unittest.mock import Mock
 
 
 class TestStandardPipeline:
-    """标准Pipeline测试"""
+    """Standard Pipeline tests"""
 
     def test_pipeline_agents_initialized(self):
-        """测试Pipeline中的Agent是否正确初始化"""
+        """Test Agents in Pipeline are properly initialized"""
         from src.pipelines.standard_pipeline import StandardPipeline
 
         mock_wrapper = Mock()
         mock_wrapper.model_config = {"num_layers": 32}
 
-        # 由于需要真实模型，这里只测试结构
+        # Since real model is needed, only test structure here
         # pipeline = StandardPipeline(mock_wrapper, "text")
         # assert pipeline.planner is not None
         pass
 
 
 class TestCommunicationProtocol:
-    """通信协议测试"""
+    """Communication protocol tests"""
 
     def test_message_creation(self):
-        """测试消息创建"""
+        """Test message creation"""
         from src.pipelines.communication import Message
 
         msg = Message(text="Hello", latent=None)
@@ -34,7 +34,7 @@ class TestCommunicationProtocol:
         assert not msg.has_latent
 
     def test_message_size_estimation(self):
-        """测试消息大小估算"""
+        """Test message size estimation"""
         from src.pipelines.communication import CommunicationProtocol, Message
 
         msg = Message(text="Hello World")

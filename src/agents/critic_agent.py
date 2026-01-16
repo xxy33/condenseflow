@@ -1,7 +1,7 @@
 """
-Critic Agent - 批评Agent
+Critic Agent
 
-负责评估和批评其他Agent的输出，提供改进建议。
+Responsible for evaluating and criticizing other Agents' outputs, providing improvement suggestions.
 """
 
 from typing import Any, Dict
@@ -23,11 +23,11 @@ Be thorough but constructive. Point out issues clearly and explain why they are 
 
 class CriticAgent(BaseAgent):
     """
-    批评Agent
+    Critic Agent
 
-    负责评估和批评其他Agent的输出，提供改进建议。
-    在标准4-Agent流程中作为第二个Agent。
-    在压力测试流程中与Solver交替工作。
+    Responsible for evaluating and criticizing other Agents' outputs, providing improvement suggestions.
+    Acts as the second Agent in the standard 4-Agent workflow.
+    Works alternately with Solver in the stress test workflow.
     """
 
     def __init__(
@@ -37,12 +37,12 @@ class CriticAgent(BaseAgent):
         system_prompt: str = None
     ):
         """
-        初始化Critic Agent。
+        Initialize Critic Agent.
 
         Args:
-            model_wrapper: LTC封装的模型
-            communication_mode: 通信模式
-            system_prompt: 自定义系统提示词，None则使用默认
+            model_wrapper: LTC wrapped model
+            communication_mode: Communication mode
+            system_prompt: Custom system prompt, uses default if None
         """
         super().__init__(
             model_wrapper=model_wrapper,
@@ -53,14 +53,14 @@ class CriticAgent(BaseAgent):
 
     def build_prompt(self, question: str, context: str = None) -> str:
         """
-        构建Critic特定的提示词。
+        Build Critic-specific prompt.
 
         Args:
-            question: 原始问题
-            context: 来自上游Agent的输出
+            question: Original question
+            context: Output from upstream Agent
 
         Returns:
-            完整的提示词
+            Complete prompt
         """
         prompt = f"""System: {self.system_prompt}
 
@@ -89,28 +89,28 @@ Please evaluate the above response and provide feedback. Structure your response
         return prompt
 
     def get_generation_kwargs(self) -> Dict[str, Any]:
-        """Critic的生成参数"""
+        """Critic's generation parameters"""
         return {
             "max_new_tokens": 1024,
-            "temperature": 0.5,  # 较低温度以获得更一致的评估
+            "temperature": 0.5,  # Lower temperature for more consistent evaluation
             "top_p": 0.95,
             "do_sample": True,
         }
 
     def is_correct(self, response: str) -> bool:
         """
-        判断Critic是否认为答案正确。
+        Determine if Critic considers the answer correct.
 
         Args:
-            response: Critic的响应文本
+            response: Critic's response text
 
         Returns:
-            True如果Critic认为答案正确
+            True if Critic considers the answer correct
         """
         response_lower = response.lower()
-        # 检查verdict
+        # Check verdict
         if "verdict:" in response_lower:
             verdict_part = response_lower.split("verdict:")[-1].strip()
             return "correct" in verdict_part and "incorrect" not in verdict_part
-        # 备用检查
+        # Fallback check
         return "correct" in response_lower and "incorrect" not in response_lower

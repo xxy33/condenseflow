@@ -1,5 +1,5 @@
 """
-压缩效果测试
+Compression Effect Tests
 """
 
 import pytest
@@ -10,10 +10,10 @@ from src.training.losses import LTCLoss
 
 
 class TestCompression:
-    """压缩效果测试"""
+    """Compression effect tests"""
 
     def test_compression_preserves_information(self):
-        """测试压缩是否保留关键信息"""
+        """Test compression preserves key information"""
         ltc = LatentThoughtCondenser(
             num_layers=2,
             kv_dim=128,
@@ -29,15 +29,15 @@ class TestCompression:
 
         compressed, _ = ltc(kv_cache)
 
-        # 压缩后的cache应该有合理的值范围
+        # Compressed cache should have reasonable value range
         for l in range(2):
             k, v = compressed[l]
             assert not torch.isnan(k).any()
             assert not torch.isnan(v).any()
-            assert k.abs().mean() > 0  # 不应该全为0
+            assert k.abs().mean() > 0  # Should not be all zeros
 
     def test_different_sequence_lengths(self):
-        """测试不同序列长度的压缩"""
+        """Test compression with different sequence lengths"""
         ltc = LatentThoughtCondenser(
             num_layers=2,
             kv_dim=64,
@@ -53,23 +53,23 @@ class TestCompression:
 
             compressed, _ = ltc(kv_cache)
 
-            # 压缩后维度应该固定
+            # Compressed dimension should be fixed
             for l in range(2):
                 assert compressed[l][0].shape == (1, 16, 64)
 
 
 class TestLTCLoss:
-    """LTC损失函数测试"""
+    """LTC loss function tests"""
 
     def test_loss_computation(self):
-        """测试损失计算"""
+        """Test loss computation"""
         loss_fn = LTCLoss(
             lambda_coverage=0.1,
             lambda_orthogonality=0.01,
             num_sampled_queries=32
         )
 
-        # 创建模拟数据
+        # Create mock data
         original_kv = {
             0: (torch.randn(1, 64, 128), torch.randn(1, 64, 128))
         }
@@ -90,18 +90,18 @@ class TestLTCLoss:
         assert losses["total"].item() > 0
 
     def test_orthogonality_loss(self):
-        """测试正交损失"""
+        """Test orthogonality loss"""
         loss_fn = LTCLoss()
 
-        # 正交矩阵应该有较低的正交损失
+        # Orthogonal matrix should have lower orthogonality loss
         orthogonal_probes = torch.eye(16, 128)
         ortho_loss = loss_fn.orthogonality_loss(orthogonal_probes)
 
-        # 随机矩阵应该有较高的正交损失
+        # Random matrix should have higher orthogonality loss
         random_probes = torch.randn(16, 128)
         random_loss = loss_fn.orthogonality_loss(random_probes)
 
-        # 正交矩阵的损失应该更低
+        # Orthogonal matrix should have lower loss
         assert ortho_loss < random_loss
 
 

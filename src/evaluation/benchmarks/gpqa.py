@@ -1,7 +1,7 @@
 """
 GPQA (Graduate-Level Google-Proof Q&A) Benchmark
 
-研究生级别的科学问答题目。
+Graduate-level science Q&A problems.
 """
 
 from typing import List, Tuple
@@ -9,13 +9,13 @@ from typing import List, Tuple
 
 def load_gpqa(subset: str = "diamond") -> Tuple[List[str], List[str]]:
     """
-    加载GPQA数据集。
+    Load GPQA dataset.
 
     Args:
-        subset: 子集名称 ("diamond", "extended", "main")
+        subset: subset name ("diamond", "extended", "main")
 
     Returns:
-        (questions, answers) 元组
+        (questions, answers) tuple
     """
     try:
         from datasets import load_dataset
@@ -26,7 +26,7 @@ def load_gpqa(subset: str = "diamond") -> Tuple[List[str], List[str]]:
 
         for item in dataset:
             question = item["Question"]
-            # 添加选项
+            # Add options
             choices = [
                 f"A) {item['Correct Answer']}",
                 f"B) {item['Incorrect Answer 1']}",
@@ -35,18 +35,18 @@ def load_gpqa(subset: str = "diamond") -> Tuple[List[str], List[str]]:
             ]
             full_question = f"{question}\n\n" + "\n".join(choices)
             questions.append(full_question)
-            answers.append("A")  # 正确答案总是A（需要打乱）
+            answers.append("A")  # Correct answer is always A (needs shuffling)
 
         return questions, answers
 
     except Exception as e:
         print(f"Failed to load GPQA from HuggingFace: {e}")
-        # 返回示例数据
+        # Return sample data
         return _get_sample_gpqa()
 
 
 def _get_sample_gpqa() -> Tuple[List[str], List[str]]:
-    """返回示例GPQA数据"""
+    """Return sample GPQA data"""
     questions = [
         """Which of the following best describes the mechanism of action of CRISPR-Cas9?
 

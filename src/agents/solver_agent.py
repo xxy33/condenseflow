@@ -1,7 +1,7 @@
 """
-Solver Agent - 求解Agent
+Solver Agent
 
-负责生成最终答案。
+Responsible for generating the final answer.
 """
 
 from typing import Any, Dict
@@ -23,11 +23,11 @@ Be precise and thorough. Your answer should be the final, complete solution."""
 
 class SolverAgent(BaseAgent):
     """
-    求解Agent
+    Solver Agent
 
-    负责生成最终答案。
-    在标准4-Agent流程中作为最后一个Agent。
-    在压力测试流程中与Critic交替工作。
+    Responsible for generating the final answer.
+    Acts as the last Agent in the standard 4-Agent workflow.
+    Works alternately with Critic in the stress test workflow.
     """
 
     def __init__(
@@ -37,12 +37,12 @@ class SolverAgent(BaseAgent):
         system_prompt: str = None
     ):
         """
-        初始化Solver Agent。
+        Initialize Solver Agent.
 
         Args:
-            model_wrapper: LTC封装的模型
-            communication_mode: 通信模式
-            system_prompt: 自定义系统提示词，None则使用默认
+            model_wrapper: LTC wrapped model
+            communication_mode: Communication mode
+            system_prompt: Custom system prompt, uses default if None
         """
         super().__init__(
             model_wrapper=model_wrapper,
@@ -53,14 +53,14 @@ class SolverAgent(BaseAgent):
 
     def build_prompt(self, question: str, context: str = None) -> str:
         """
-        构建Solver特定的提示词。
+        Build Solver-specific prompt.
 
         Args:
-            question: 原始问题
-            context: 来自上游Agent的输出
+            question: Original question
+            context: Output from upstream Agent
 
         Returns:
-            完整的提示词
+            Complete prompt
         """
         prompt = f"""System: {self.system_prompt}
 
@@ -86,7 +86,7 @@ Based on the above analysis, please provide the final solution. Structure your r
         return prompt
 
     def get_generation_kwargs(self) -> Dict[str, Any]:
-        """Solver的生成参数"""
+        """Solver's generation parameters"""
         return {
             "max_new_tokens": 2048,
             "temperature": 0.6,
@@ -96,26 +96,26 @@ Based on the above analysis, please provide the final solution. Structure your r
 
     def extract_answer(self, response: str) -> str:
         """
-        从响应中提取最终答案。
+        Extract final answer from response.
 
         Args:
-            response: Solver的完整响应
+            response: Solver's complete response
 
         Returns:
-            提取的答案
+            Extracted answer
         """
         response_lower = response.lower()
 
-        # 尝试找到 "Final Answer:" 部分
+        # Try to find "Final Answer:" section
         if "final answer:" in response_lower:
             idx = response_lower.find("final answer:")
             answer_part = response[idx + len("final answer:"):].strip()
-            # 取到下一个换行或结束
+            # Take until next double newline or end
             if "\n\n" in answer_part:
                 answer_part = answer_part.split("\n\n")[0]
             return answer_part.strip()
 
-        # 尝试找到 "Answer:" 部分
+        # Try to find "Answer:" section
         if "answer:" in response_lower:
             idx = response_lower.find("answer:")
             answer_part = response[idx + len("answer:"):].strip()
@@ -123,6 +123,6 @@ Based on the above analysis, please provide the final solution. Structure your r
                 answer_part = answer_part.split("\n\n")[0]
             return answer_part.strip()
 
-        # 如果没有明确标记，返回最后一段
+        # If no explicit marker, return last paragraph
         paragraphs = response.strip().split("\n\n")
         return paragraphs[-1].strip() if paragraphs else response.strip()

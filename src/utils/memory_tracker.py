@@ -1,7 +1,7 @@
 """
-内存监控工具
+Memory Monitoring Utilities
 
-提供GPU和CPU内存使用监控功能。
+Provides GPU and CPU memory usage monitoring functionality.
 """
 
 import time
@@ -13,7 +13,7 @@ import torch
 
 @dataclass
 class MemorySnapshot:
-    """内存快照"""
+    """Memory snapshot"""
     timestamp: float
     name: str
     gpu_allocated_mb: float = 0.0
@@ -24,17 +24,17 @@ class MemorySnapshot:
 
 class MemoryTracker:
     """
-    内存监控器。
+    Memory tracker.
 
-    用于跟踪训练和推理过程中的内存使用情况。
+    Used to track memory usage during training and inference.
     """
 
     def __init__(self, enabled: bool = True):
         """
-        初始化内存监控器。
+        Initialize memory tracker.
 
         Args:
-            enabled: 是否启用监控
+            enabled: whether to enable tracking
         """
         self.enabled = enabled
         self.snapshots: List[MemorySnapshot] = []
@@ -42,13 +42,13 @@ class MemoryTracker:
 
     def snapshot(self, name: str) -> Optional[MemorySnapshot]:
         """
-        记录当前内存快照。
+        Record current memory snapshot.
 
         Args:
-            name: 快照名称
+            name: snapshot name
 
         Returns:
-            内存快照对象
+            memory snapshot object
         """
         if not self.enabled:
             return None
@@ -63,7 +63,7 @@ class MemoryTracker:
             snapshot.gpu_reserved_mb = torch.cuda.memory_reserved() / 1024 / 1024
             snapshot.gpu_max_allocated_mb = torch.cuda.max_memory_allocated() / 1024 / 1024
 
-        # CPU内存（需要psutil）
+        # CPU memory (requires psutil)
         try:
             import psutil
             process = psutil.Process()
@@ -75,7 +75,7 @@ class MemoryTracker:
         return snapshot
 
     def reset(self):
-        """重置监控器"""
+        """Reset tracker"""
         self.snapshots = []
         self._start_time = time.time()
         if torch.cuda.is_available():
@@ -83,10 +83,10 @@ class MemoryTracker:
 
     def get_peak_memory(self) -> Dict[str, float]:
         """
-        获取峰值内存使用。
+        Get peak memory usage.
 
         Returns:
-            峰值内存信息
+            peak memory information
         """
         if not self.snapshots:
             return {}
@@ -101,10 +101,10 @@ class MemoryTracker:
 
     def get_memory_timeline(self) -> List[Dict[str, Any]]:
         """
-        获取内存使用时间线。
+        Get memory usage timeline.
 
         Returns:
-            时间线数据列表
+            timeline data list
         """
         return [
             {
@@ -118,7 +118,7 @@ class MemoryTracker:
         ]
 
     def print_summary(self):
-        """打印内存使用摘要"""
+        """Print memory usage summary"""
         if not self.snapshots:
             print("No memory snapshots recorded.")
             return
@@ -146,13 +146,13 @@ class MemoryTracker:
         mode_snapshots: Dict[str, List[MemorySnapshot]]
     ) -> Dict[str, Any]:
         """
-        比较不同模式的内存使用。
+        Compare memory usage across different modes.
 
         Args:
-            mode_snapshots: 模式名称 -> 快照列表
+            mode_snapshots: mode name -> snapshot list
 
         Returns:
-            比较结果
+            comparison results
         """
         comparison = {}
 
@@ -171,10 +171,10 @@ class MemoryTracker:
 
 def get_gpu_memory_info() -> Dict[str, float]:
     """
-    获取当前GPU内存信息。
+    Get current GPU memory information.
 
     Returns:
-        GPU内存信息字典
+        GPU memory information dictionary
     """
     if not torch.cuda.is_available():
         return {"available": False}
@@ -189,7 +189,7 @@ def get_gpu_memory_info() -> Dict[str, float]:
 
 
 def clear_gpu_memory():
-    """清理GPU内存"""
+    """Clear GPU memory"""
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
         torch.cuda.synchronize()

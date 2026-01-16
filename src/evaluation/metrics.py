@@ -1,7 +1,7 @@
 """
-评估指标
+Evaluation Metrics
 
-包含准确率计算和效率指标计算。
+Contains accuracy computation and efficiency metrics computation.
 """
 
 import re
@@ -17,15 +17,15 @@ def compute_accuracy(
     task_type: str = "math"
 ) -> Dict[str, float]:
     """
-    计算准确率。
+    Compute accuracy.
 
     Args:
-        predictions: 预测答案列表
-        references: 参考答案列表
-        task_type: 任务类型 ("math", "code", "mcq")
+        predictions: List of predicted answers
+        references: List of reference answers
+        task_type: Task type ("math", "code", "mcq")
 
     Returns:
-        准确率指标字典
+        Accuracy metrics dictionary
     """
     if len(predictions) != len(references):
         raise ValueError("Predictions and references must have same length")
@@ -54,7 +54,7 @@ def compute_accuracy(
 
 
 def _compare_math_answers(pred: str, ref: str) -> bool:
-    """比较数学答案"""
+    """Compare math answers"""
     pred_num = _extract_number(pred)
     ref_num = _extract_number(ref)
 
@@ -65,11 +65,11 @@ def _compare_math_answers(pred: str, ref: str) -> bool:
 
 
 def _extract_number(text: str) -> Optional[float]:
-    """从文本中提取数字"""
-    # 移除逗号
+    """Extract number from text"""
+    # Remove commas
     text = text.replace(",", "")
 
-    # 尝试匹配数字
+    # Try to match numbers
     patterns = [
         r"[-+]?\d*\.?\d+",
         r"\\boxed\{([-+]?\d*\.?\d+)\}",
@@ -87,14 +87,14 @@ def _extract_number(text: str) -> Optional[float]:
 
 
 def _compare_mcq_answers(pred: str, ref: str) -> bool:
-    """比较选择题答案"""
+    """Compare multiple choice answers"""
     pred_choice = _extract_choice(pred)
     ref_choice = _extract_choice(ref)
     return pred_choice == ref_choice
 
 
 def _extract_choice(text: str) -> str:
-    """提取选择题选项"""
+    """Extract multiple choice option"""
     text = text.strip().upper()
     for char in text:
         if char in "ABCDE":
@@ -103,7 +103,7 @@ def _extract_choice(text: str) -> str:
 
 
 def _compare_text_answers(pred: str, ref: str) -> bool:
-    """比较文本答案"""
+    """Compare text answers"""
     return pred.strip().lower() == ref.strip().lower()
 
 
@@ -112,22 +112,22 @@ def compute_efficiency_metrics(
     timing_stats: Dict[str, float]
 ) -> Dict[str, float]:
     """
-    计算效率指标。
+    Compute efficiency metrics.
 
     Args:
-        memory_stats: 内存统计
-        timing_stats: 时间统计
+        memory_stats: Memory statistics
+        timing_stats: Timing statistics
 
     Returns:
-        效率指标字典
+        Efficiency metrics dictionary
     """
     metrics = {}
 
-    # 时间指标
+    # Time metrics
     if "total" in timing_stats:
         metrics["total_time_seconds"] = timing_stats["total"]
 
-    # 内存指标
+    # Memory metrics
     if memory_stats:
         max_memory = 0
         for stage, stats in memory_stats.items():

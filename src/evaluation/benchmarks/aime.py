@@ -1,7 +1,7 @@
 """
 AIME (American Invitational Mathematics Examination) Benchmark
 
-数学竞赛题目，用于评估数学推理能力。
+Math competition problems for evaluating mathematical reasoning ability.
 """
 
 from typing import List, Tuple, Optional
@@ -9,15 +9,15 @@ from typing import List, Tuple, Optional
 
 def load_aime(year: Optional[int] = None) -> Tuple[List[str], List[str]]:
     """
-    加载AIME数据集。
+    Load AIME dataset.
 
     Args:
-        year: 指定年份，None则加载所有
+        year: Specify year, None loads all
 
     Returns:
-        (questions, answers) 元组
+        (questions, answers) tuple
     """
-    # 示例数据 - 实际使用时应从数据文件加载
+    # Sample data - should load from data file in actual use
     aime_data = {
         2024: [
             {
@@ -55,7 +55,7 @@ def load_aime(year: Optional[int] = None) -> Tuple[List[str], List[str]]:
 
 
 def load_aime_from_file(file_path: str) -> Tuple[List[str], List[str]]:
-    """从文件加载AIME数据"""
+    """Load AIME data from file"""
     import json
 
     with open(file_path, 'r', encoding='utf-8') as f:

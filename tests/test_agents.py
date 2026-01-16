@@ -1,5 +1,5 @@
 """
-Agent模块测试
+Agent Module Tests
 """
 
 import pytest
@@ -9,28 +9,28 @@ from src.agents.base_agent import BaseAgent, CommunicationMode
 
 
 class TestCommunicationMode:
-    """通信模式测试"""
+    """Communication mode tests"""
 
     def test_mode_values(self):
-        """测试通信模式枚举值"""
+        """Test communication mode enum values"""
         assert CommunicationMode.TEXT.value == "text"
         assert CommunicationMode.DENSE_LATENT.value == "dense"
         assert CommunicationMode.CONDENSEFLOW.value == "condenseflow"
 
     def test_mode_from_string(self):
-        """测试从字符串创建模式"""
+        """Test creating mode from string"""
         mode = CommunicationMode("condenseflow")
         assert mode == CommunicationMode.CONDENSEFLOW
 
 
 class TestBaseAgent:
-    """Agent基类测试"""
+    """Base Agent tests"""
 
     def test_agent_init(self):
-        """测试Agent初始化"""
+        """Test Agent initialization"""
         mock_wrapper = Mock()
 
-        # 创建一个具体的Agent子类用于测试
+        # Create a concrete Agent subclass for testing
         class TestAgent(BaseAgent):
             pass
 
@@ -46,7 +46,7 @@ class TestBaseAgent:
         assert agent.communication_mode == CommunicationMode.TEXT
 
     def test_build_prompt(self):
-        """测试提示词构建"""
+        """Test prompt building"""
         mock_wrapper = Mock()
 
         class TestAgent(BaseAgent):

@@ -1,7 +1,7 @@
 """
-Refiner Agent - 优化Agent
+Refiner Agent
 
-负责根据批评意见优化和改进解决方案。
+Responsible for optimizing and improving solutions based on feedback.
 """
 
 from typing import Any, Dict
@@ -23,10 +23,10 @@ Take the feedback seriously and make meaningful improvements while preserving wh
 
 class RefinerAgent(BaseAgent):
     """
-    优化Agent
+    Refiner Agent
 
-    负责根据批评意见优化和改进解决方案。
-    在标准4-Agent流程中作为第三个Agent。
+    Responsible for optimizing and improving solutions based on feedback.
+    Acts as the third Agent in the standard 4-Agent workflow.
     """
 
     def __init__(
@@ -36,12 +36,12 @@ class RefinerAgent(BaseAgent):
         system_prompt: str = None
     ):
         """
-        初始化Refiner Agent。
+        Initialize Refiner Agent.
 
         Args:
-            model_wrapper: LTC封装的模型
-            communication_mode: 通信模式
-            system_prompt: 自定义系统提示词，None则使用默认
+            model_wrapper: LTC wrapped model
+            communication_mode: Communication mode
+            system_prompt: Custom system prompt, uses default if None
         """
         super().__init__(
             model_wrapper=model_wrapper,
@@ -52,14 +52,14 @@ class RefinerAgent(BaseAgent):
 
     def build_prompt(self, question: str, context: str = None) -> str:
         """
-        构建Refiner特定的提示词。
+        Build Refiner-specific prompt.
 
         Args:
-            question: 原始问题
-            context: 来自Critic的反馈
+            question: Original question
+            context: Feedback from Critic
 
         Returns:
-            完整的提示词
+            Complete prompt
         """
         prompt = f"""System: {self.system_prompt}
 
@@ -86,7 +86,7 @@ Based on the feedback above, please provide an improved solution. Make sure to:
         return prompt
 
     def get_generation_kwargs(self) -> Dict[str, Any]:
-        """Refiner的生成参数"""
+        """Refiner's generation parameters"""
         return {
             "max_new_tokens": 1536,
             "temperature": 0.6,

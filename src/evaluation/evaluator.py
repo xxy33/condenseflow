@@ -1,7 +1,7 @@
 """
-CondenseFlow评估器
+CondenseFlow Evaluator
 
-评估不同通信模式在各benchmark上的表现。
+Evaluates the performance of different communication modes on various benchmarks.
 """
 
 import os
@@ -19,12 +19,12 @@ from .metrics import compute_accuracy, compute_efficiency_metrics
 
 class CondenseFlowEvaluator:
     """
-    CondenseFlow评估器。
+    CondenseFlow evaluator.
 
-    评估维度:
-    - 准确率: 各benchmark上的任务准确率
-    - 效率: 内存占用、推理时间
-    - 压缩质量: 有效秩分析
+    Evaluation dimensions:
+    - Accuracy: Task accuracy on various benchmarks
+    - Efficiency: Memory usage, inference time
+    - Compression quality: Effective rank analysis
     """
 
     def __init__(
@@ -35,13 +35,13 @@ class CondenseFlowEvaluator:
         communication_modes: List[str] = None
     ):
         """
-        初始化评估器。
+        Initialize evaluator.
 
         Args:
-            model_wrapper: LTC封装的模型
-            benchmarks: 评估benchmark列表
-            protocol: 评估协议 ("standard" or "stress_test")
-            communication_modes: 通信模式列表
+            model_wrapper: LTC wrapped model
+            benchmarks: List of evaluation benchmarks
+            protocol: Evaluation protocol ("standard" or "stress_test")
+            communication_modes: List of communication modes
         """
         self.model_wrapper = model_wrapper
         self.benchmarks = benchmarks
@@ -54,14 +54,14 @@ class CondenseFlowEvaluator:
         num_runs: int = 5
     ) -> Dict[str, Any]:
         """
-        执行完整评估。
+        Execute complete evaluation.
 
         Args:
-            output_dir: 输出目录
-            num_runs: 运行次数
+            output_dir: Output directory
+            num_runs: Number of runs
 
         Returns:
-            评估结果字典
+            Evaluation results dictionary
         """
         os.makedirs(output_dir, exist_ok=True)
 
@@ -83,7 +83,7 @@ class CondenseFlowEvaluator:
                     run_result = self.evaluate_single_benchmark(benchmark, mode)
                     mode_results.append(run_result)
 
-                # 计算均值和标准差
+                # Compute mean and standard deviation
                 accuracies = [r["accuracy"] for r in mode_results]
                 mean_acc = sum(accuracies) / len(accuracies)
                 std_acc = (sum((a - mean_acc) ** 2 for a in accuracies) / len(accuracies)) ** 0.5
@@ -94,11 +94,11 @@ class CondenseFlowEvaluator:
                     "runs": accuracies,
                 }
 
-        # 效率评估
+        # Efficiency evaluation
         for mode in self.communication_modes:
             results["efficiency"][mode] = self.compute_efficiency_metrics(mode, num_rounds=5)
 
-        # 保存结果
+        # Save results
         with open(os.path.join(output_dir, "results.json"), "w") as f:
             json.dump(results, f, indent=2)
 
@@ -110,19 +110,19 @@ class CondenseFlowEvaluator:
         communication_mode: str
     ) -> Dict[str, Any]:
         """
-        评估单个benchmark。
+        Evaluate single benchmark.
 
         Args:
-            benchmark_name: benchmark名称
-            communication_mode: 通信模式
+            benchmark_name: Benchmark name
+            communication_mode: Communication mode
 
         Returns:
-            评估结果
+            Evaluation results
         """
-        # 加载benchmark数据
+        # Load benchmark data
         questions, references = self._load_benchmark(benchmark_name)
 
-        # 创建pipeline
+        # Create pipeline
         if self.protocol == "standard":
             pipeline = StandardPipeline(self.model_wrapper, communication_mode)
         else:
@@ -133,7 +133,7 @@ class CondenseFlowEvaluator:
             result = pipeline.run(question, verbose=False)
             predictions.append(result["answer"])
 
-        # 计算准确率
+        # Compute accuracy
         task_type = self._get_task_type(benchmark_name)
         accuracy_result = compute_accuracy(predictions, references, task_type)
 
@@ -145,12 +145,12 @@ class CondenseFlowEvaluator:
         }
 
     def _load_benchmark(self, benchmark_name: str):
-        """加载benchmark数据"""
+        """Load benchmark data"""
         from .benchmarks import load_benchmark
         return load_benchmark(benchmark_name)
 
     def _get_task_type(self, benchmark_name: str) -> str:
-        """获取任务类型"""
+        """Get task type"""
         if "aime" in benchmark_name.lower() or "math" in benchmark_name.lower():
             return "math"
         elif "gpqa" in benchmark_name.lower() or "medqa" in benchmark_name.lower():
@@ -163,7 +163,7 @@ class CondenseFlowEvaluator:
         communication_mode: str,
         num_rounds: int
     ) -> Dict[str, float]:
-        """计算效率指标"""
+        """Compute efficiency metrics"""
         pipeline = StressTestPipeline(
             self.model_wrapper,
             max_rounds=num_rounds,

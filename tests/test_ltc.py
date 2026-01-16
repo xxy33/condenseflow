@@ -1,5 +1,5 @@
 """
-LTC模块测试
+LTC Module Tests
 """
 
 import pytest
@@ -9,10 +9,10 @@ from src.models.ltc import LatentThoughtCondenser
 
 
 class TestLTC:
-    """LTC模块测试类"""
+    """LTC module test class"""
 
     def test_ltc_init(self):
-        """测试LTC初始化"""
+        """Test LTC initialization"""
         ltc = LatentThoughtCondenser(
             num_layers=32,
             kv_dim=1024,
@@ -23,7 +23,7 @@ class TestLTC:
         assert ltc.compression_dim == 64
 
     def test_ltc_compression_shape(self):
-        """测试压缩后的shape是否正确"""
+        """Test compressed shape is correct"""
         ltc = LatentThoughtCondenser(
             num_layers=4,
             kv_dim=256,
@@ -45,7 +45,7 @@ class TestLTC:
             assert attn_weights[l].shape == (batch_size, 16, seq_len)
 
     def test_compression_ratio(self):
-        """测试压缩比例计算"""
+        """Test compression ratio calculation"""
         ltc = LatentThoughtCondenser(
             num_layers=4,
             kv_dim=256,
@@ -56,7 +56,7 @@ class TestLTC:
         assert abs(ratio - 64/512) < 1e-6
 
     def test_attention_weights_sum_to_one(self):
-        """测试注意力权重和为1"""
+        """Test attention weights sum to one"""
         ltc = LatentThoughtCondenser(
             num_layers=2,
             kv_dim=128,
@@ -66,7 +66,7 @@ class TestLTC:
         keys = torch.randn(1, 32, 128)
         weights = ltc.compute_attention_weights(keys)
 
-        # 检查每行和为1
+        # Check each row sums to 1
         row_sums = weights.sum(dim=-1)
         assert torch.allclose(row_sums, torch.ones_like(row_sums), atol=1e-5)
 

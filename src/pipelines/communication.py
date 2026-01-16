@@ -1,7 +1,7 @@
 """
-通信协议实现
+Communication Protocol Implementation
 
-定义不同通信模式的协议和工具函数。
+Defines protocols and utility functions for different communication modes.
 """
 
 from dataclasses import dataclass
@@ -12,7 +12,7 @@ import torch
 
 
 class CommunicationMode(Enum):
-    """通信模式"""
+    """Communication mode"""
     TEXT = "text"
     DENSE_LATENT = "dense"
     CONDENSEFLOW = "condenseflow"
@@ -20,7 +20,7 @@ class CommunicationMode(Enum):
 
 @dataclass
 class Message:
-    """Agent间传递的消息"""
+    """Message passed between Agents"""
     text: Optional[str] = None
     latent: Optional[Dict[int, Tuple[torch.Tensor, torch.Tensor]]] = None
     metadata: Optional[Dict[str, Any]] = None
@@ -36,17 +36,17 @@ class Message:
 
 class CommunicationProtocol:
     """
-    通信协议管理器。
+    Communication protocol manager.
 
-    负责管理不同通信模式下的消息传递。
+    Manages message passing under different communication modes.
     """
 
     def __init__(self, mode: str = "condenseflow"):
         """
-        初始化通信协议。
+        Initialize communication protocol.
 
         Args:
-            mode: 通信模式
+            mode: Communication mode
         """
         self.mode = CommunicationMode(mode)
 
@@ -57,15 +57,15 @@ class CommunicationProtocol:
         metadata: Optional[Dict] = None
     ) -> Message:
         """
-        创建消息。
+        Create message.
 
         Args:
-            text: 文本内容
-            latent: 潜在表示
-            metadata: 元数据
+            text: Text content
+            latent: Latent representation
+            metadata: Metadata
 
         Returns:
-            Message对象
+            Message object
         """
         if self.mode == CommunicationMode.TEXT:
             return Message(text=text, latent=None, metadata=metadata)
@@ -76,13 +76,13 @@ class CommunicationProtocol:
 
     def extract_for_downstream(self, message: Message) -> Tuple[Optional[str], Optional[Dict]]:
         """
-        从消息中提取下游Agent需要的内容。
+        Extract content needed by downstream Agent from message.
 
         Args:
-            message: 消息对象
+            message: Message object
 
         Returns:
-            (text, latent) 元组
+            (text, latent) tuple
         """
         if self.mode == CommunicationMode.TEXT:
             return message.text, None
@@ -92,18 +92,18 @@ class CommunicationProtocol:
     @staticmethod
     def estimate_message_size(message: Message) -> Dict[str, float]:
         """
-        估算消息大小。
+        Estimate message size.
 
         Args:
-            message: 消息对象
+            message: Message object
 
         Returns:
-            包含各部分大小的字典（单位：MB）
+            Dictionary containing size of each part (unit: MB)
         """
         sizes = {"text_mb": 0, "latent_mb": 0, "total_mb": 0}
 
         if message.text:
-            # 假设UTF-8编码，每个字符平均2字节
+            # Assume UTF-8 encoding, average 2 bytes per character
             sizes["text_mb"] = len(message.text) * 2 / 1024 / 1024
 
         if message.latent:
@@ -123,15 +123,15 @@ class CommunicationProtocol:
         compressed_latent: Message
     ) -> Dict[str, Any]:
         """
-        比较不同通信模式的成本。
+        Compare costs of different communication modes.
 
         Args:
-            text_only: 纯文本消息
-            dense_latent: 完整KV Cache消息
-            compressed_latent: 压缩后的消息
+            text_only: Text-only message
+            dense_latent: Full KV Cache message
+            compressed_latent: Compressed message
 
         Returns:
-            比较结果
+            Comparison results
         """
         text_size = CommunicationProtocol.estimate_message_size(text_only)
         dense_size = CommunicationProtocol.estimate_message_size(dense_latent)
@@ -151,13 +151,13 @@ def serialize_latent(
     latent: Dict[int, Tuple[torch.Tensor, torch.Tensor]]
 ) -> bytes:
     """
-    序列化潜在表示（用于分布式场景）。
+    Serialize latent representation (for distributed scenarios).
 
     Args:
-        latent: 潜在表示字典
+        latent: Latent representation dictionary
 
     Returns:
-        序列化后的字节
+        Serialized bytes
     """
     import io
     buffer = io.BytesIO()
@@ -169,13 +169,13 @@ def deserialize_latent(
     data: bytes
 ) -> Dict[int, Tuple[torch.Tensor, torch.Tensor]]:
     """
-    反序列化潜在表示。
+    Deserialize latent representation.
 
     Args:
-        data: 序列化的字节
+        data: Serialized bytes
 
     Returns:
-        潜在表示字典
+        Latent representation dictionary
     """
     import io
     buffer = io.BytesIO(data)

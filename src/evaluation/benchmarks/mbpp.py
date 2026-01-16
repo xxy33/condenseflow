@@ -1,7 +1,7 @@
 """
 MBPP (Mostly Basic Python Problems) Benchmark
 
-Python编程题目，用于评估代码生成能力。
+Python programming problems for evaluating code generation ability.
 """
 
 from typing import List, Tuple
@@ -9,13 +9,13 @@ from typing import List, Tuple
 
 def load_mbpp(split: str = "test") -> Tuple[List[str], List[str]]:
     """
-    加载MBPP数据集。
+    Load MBPP dataset.
 
     Args:
-        split: 数据集分割 ("test", "train", "validation")
+        split: dataset split ("test", "train", "validation")
 
     Returns:
-        (questions, answers) 元组
+        (questions, answers) tuple
     """
     try:
         from datasets import load_dataset
@@ -28,7 +28,7 @@ def load_mbpp(split: str = "test") -> Tuple[List[str], List[str]]:
             prompt = item["text"]
             code = item["code"]
 
-            # 添加测试用例信息
+            # Add test case information
             test_cases = item.get("test_list", [])
             if test_cases:
                 prompt += "\n\nTest cases:\n" + "\n".join(test_cases[:3])
@@ -44,7 +44,7 @@ def load_mbpp(split: str = "test") -> Tuple[List[str], List[str]]:
 
 
 def _get_sample_mbpp() -> Tuple[List[str], List[str]]:
-    """返回示例MBPP数据"""
+    """Return sample MBPP data"""
     questions = [
         """Write a function to find the maximum of two numbers.
 
@@ -64,21 +64,21 @@ assert max_of_two(0, 0) == 0""",
 
 def evaluate_code(prediction: str, test_cases: List[str]) -> bool:
     """
-    评估生成的代码是否正确。
+    Evaluate whether generated code is correct.
 
     Args:
-        prediction: 生成的代码
-        test_cases: 测试用例列表
+        prediction: generated code
+        test_cases: list of test cases
 
     Returns:
-        是否通过所有测试
+        whether all tests pass
     """
     try:
-        # 创建执行环境
+        # Create execution environment
         exec_globals = {}
         exec(prediction, exec_globals)
 
-        # 运行测试用例
+        # Run test cases
         for test in test_cases:
             exec(test, exec_globals)
 

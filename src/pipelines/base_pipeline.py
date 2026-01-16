@@ -1,7 +1,7 @@
 """
-Pipeline基类
+Pipeline Base Class
 
-定义协作流程的基本接口和通用功能。
+Defines basic interfaces and common functionality for collaboration workflows.
 """
 
 import time
@@ -16,9 +16,9 @@ from ..agents.base_agent import CommunicationMode
 
 class BasePipeline(ABC):
     """
-    协作Pipeline基类。
+    Collaboration Pipeline base class.
 
-    定义了多Agent协作流程的基本接口。
+    Defines basic interfaces for multi-Agent collaboration workflows.
     """
 
     def __init__(
@@ -27,16 +27,16 @@ class BasePipeline(ABC):
         communication_mode: str = "condenseflow"
     ):
         """
-        初始化Pipeline。
+        Initialize Pipeline.
 
         Args:
-            model_wrapper: LTC封装的模型
-            communication_mode: 通信模式 ("text", "dense", "condenseflow")
+            model_wrapper: LTC wrapped model
+            communication_mode: Communication mode ("text", "dense", "condenseflow")
         """
         self.model_wrapper = model_wrapper
         self.communication_mode = communication_mode
 
-        # 统计信息
+        # Statistics
         self._timing_stats = {}
         self._memory_stats = {}
 
@@ -47,28 +47,28 @@ class BasePipeline(ABC):
         verbose: bool = False
     ) -> Dict[str, Any]:
         """
-        执行协作流程。
+        Execute collaboration workflow.
 
         Args:
-            question: 输入问题
-            verbose: 是否输出详细信息
+            question: Input question
+            verbose: Whether to output detailed information
 
         Returns:
-            包含答案和统计信息的字典
+            Dictionary containing answer and statistics
         """
         pass
 
     def _start_timer(self, name: str):
-        """开始计时"""
+        """Start timer"""
         self._timing_stats[f"{name}_start"] = time.time()
 
     def _end_timer(self, name: str):
-        """结束计时"""
+        """End timer"""
         start_time = self._timing_stats.get(f"{name}_start", time.time())
         self._timing_stats[name] = time.time() - start_time
 
     def _record_memory(self, name: str):
-        """记录当前GPU内存使用"""
+        """Record current GPU memory usage"""
         if torch.cuda.is_available():
             self._memory_stats[name] = {
                 "allocated_mb": torch.cuda.memory_allocated() / 1024 / 1024,
@@ -77,20 +77,20 @@ class BasePipeline(ABC):
             }
 
     def _clear_memory_stats(self):
-        """清除内存统计"""
+        """Clear memory statistics"""
         self._memory_stats = {}
         if torch.cuda.is_available():
             torch.cuda.reset_peak_memory_stats()
 
     def get_timing_stats(self) -> Dict[str, float]:
-        """获取时间统计"""
+        """Get timing statistics"""
         return {k: v for k, v in self._timing_stats.items() if not k.endswith("_start")}
 
     def get_memory_stats(self) -> Dict[str, Dict[str, float]]:
-        """获取内存统计"""
+        """Get memory statistics"""
         return self._memory_stats
 
     def reset_stats(self):
-        """重置所有统计信息"""
+        """Reset all statistics"""
         self._timing_stats = {}
         self._clear_memory_stats()

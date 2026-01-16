@@ -1,7 +1,7 @@
 """
-配置管理工具
+Configuration Management Utilities
 
-提供配置文件加载和合并功能。
+Provides configuration file loading and merging functionality.
 """
 
 import os
@@ -12,13 +12,13 @@ import yaml
 
 def load_config(config_path: str) -> Dict[str, Any]:
     """
-    加载YAML配置文件。
+    Load a YAML configuration file.
 
     Args:
-        config_path: 配置文件路径
+        config_path: configuration file path
 
     Returns:
-        配置字典
+        configuration dictionary
     """
     if not os.path.exists(config_path):
         raise FileNotFoundError(f"Config file not found: {config_path}")
@@ -31,11 +31,11 @@ def load_config(config_path: str) -> Dict[str, Any]:
 
 def save_config(config: Dict[str, Any], config_path: str):
     """
-    保存配置到YAML文件。
+    Save configuration to a YAML file.
 
     Args:
-        config: 配置字典
-        config_path: 配置文件路径
+        config: configuration dictionary
+        config_path: configuration file path
     """
     os.makedirs(os.path.dirname(config_path), exist_ok=True)
 
@@ -45,15 +45,15 @@ def save_config(config: Dict[str, Any], config_path: str):
 
 def merge_configs(*configs: Dict[str, Any]) -> Dict[str, Any]:
     """
-    合并多个配置字典。
+    Merge multiple configuration dictionaries.
 
-    后面的配置会覆盖前面的配置。
+    Later configs override earlier ones.
 
     Args:
-        *configs: 配置字典列表
+        *configs: list of configuration dictionaries
 
     Returns:
-        合并后的配置
+        merged configuration
     """
     result = {}
 
@@ -65,14 +65,14 @@ def merge_configs(*configs: Dict[str, Any]) -> Dict[str, Any]:
 
 def _deep_merge(base: Dict, override: Dict) -> Dict:
     """
-    深度合并两个字典。
+    Deep merge two dictionaries.
 
     Args:
-        base: 基础字典
-        override: 覆盖字典
+        base: base dictionary
+        override: override dictionary
 
     Returns:
-        合并后的字典
+        merged dictionary
     """
     result = base.copy()
 
@@ -87,15 +87,15 @@ def _deep_merge(base: Dict, override: Dict) -> Dict:
 
 def get_config_value(config: Dict[str, Any], key_path: str, default: Any = None) -> Any:
     """
-    通过点分隔的路径获取配置值。
+    Get configuration value by dot-separated path.
 
     Args:
-        config: 配置字典
-        key_path: 点分隔的键路径，如 "model.num_layers"
-        default: 默认值
+        config: configuration dictionary
+        key_path: dot-separated key path, e.g., "model.num_layers"
+        default: default value
 
     Returns:
-        配置值或默认值
+        configuration value or default
     """
     keys = key_path.split('.')
     value = config
@@ -111,12 +111,12 @@ def get_config_value(config: Dict[str, Any], key_path: str, default: Any = None)
 
 def set_config_value(config: Dict[str, Any], key_path: str, value: Any):
     """
-    通过点分隔的路径设置配置值。
+    Set configuration value by dot-separated path.
 
     Args:
-        config: 配置字典
-        key_path: 点分隔的键路径
-        value: 要设置的值
+        config: configuration dictionary
+        key_path: dot-separated key path
+        value: value to set
     """
     keys = key_path.split('.')
     current = config
@@ -130,40 +130,40 @@ def set_config_value(config: Dict[str, Any], key_path: str, value: Any):
 
 
 class Config:
-    """配置类，提供便捷的配置访问"""
+    """Configuration class, provides convenient configuration access"""
 
     def __init__(self, config_dict: Optional[Dict[str, Any]] = None):
         """
-        初始化配置。
+        Initialize configuration.
 
         Args:
-            config_dict: 配置字典
+            config_dict: configuration dictionary
         """
         self._config = config_dict or {}
 
     @classmethod
     def from_file(cls, config_path: str) -> "Config":
-        """从文件加载配置"""
+        """Load configuration from file"""
         return cls(load_config(config_path))
 
     def get(self, key_path: str, default: Any = None) -> Any:
-        """获取配置值"""
+        """Get configuration value"""
         return get_config_value(self._config, key_path, default)
 
     def set(self, key_path: str, value: Any):
-        """设置配置值"""
+        """Set configuration value"""
         set_config_value(self._config, key_path, value)
 
     def merge(self, other: "Config"):
-        """合并另一个配置"""
+        """Merge another configuration"""
         self._config = merge_configs(self._config, other._config)
 
     def to_dict(self) -> Dict[str, Any]:
-        """转换为字典"""
+        """Convert to dictionary"""
         return self._config.copy()
 
     def save(self, config_path: str):
-        """保存到文件"""
+        """Save to file"""
         save_config(self._config, config_path)
 
     def __getitem__(self, key: str) -> Any:

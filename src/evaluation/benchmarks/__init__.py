@@ -8,13 +8,13 @@ from .medqa import load_medqa
 
 def load_benchmark(name: str):
     """
-    加载指定的benchmark数据。
+    Load specified benchmark data.
 
     Args:
-        name: benchmark名称
+        name: benchmark name
 
     Returns:
-        (questions, references) 元组
+        (questions, references) tuple
     """
     name_lower = name.lower()
 

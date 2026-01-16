@@ -1,7 +1,7 @@
 """
-KV Cache操作工具
+KV Cache Operation Utilities
 
-提供KV Cache格式转换和操作的工具函数。
+Provides utility functions for KV Cache format conversion and operations.
 """
 
 from typing import Dict, Tuple
@@ -15,21 +15,21 @@ def reshape_kv_for_ltc(
     head_dim: int
 ) -> Dict[int, Tuple[torch.Tensor, torch.Tensor]]:
     """
-    将HuggingFace格式的KV Cache转换为LTC输入格式。
+    Convert HuggingFace format KV Cache to LTC input format.
 
-    HuggingFace格式: tuple of (key, value) per layer
+    HuggingFace format: tuple of (key, value) per layer
     key/value shape: [batch, num_kv_heads, seq_len, head_dim]
 
-    LTC格式: Dict[layer_idx, (key, value)]
+    LTC format: Dict[layer_idx, (key, value)]
     key/value shape: [batch, seq_len, kv_dim]
 
     Args:
-        past_key_values: HuggingFace格式的past_key_values
-        num_kv_heads: KV头数量
-        head_dim: 每个头的维度
+        past_key_values: HuggingFace format past_key_values
+        num_kv_heads: number of KV heads
+        head_dim: dimension per head
 
     Returns:
-        LTC格式的KV Cache字典
+        LTC format KV Cache dictionary
     """
     kv_cache = {}
 
@@ -51,21 +51,21 @@ def reshape_kv_from_ltc(
     head_dim: int
 ) -> Tuple:
     """
-    将LTC格式的压缩Cache转换回HuggingFace格式。
+    Convert LTC format compressed cache back to HuggingFace format.
 
-    LTC格式: Dict[layer_idx, (key, value)]
+    LTC format: Dict[layer_idx, (key, value)]
     key/value shape: [batch, compression_dim, kv_dim]
 
-    HuggingFace格式: tuple of (key, value) per layer
+    HuggingFace format: tuple of (key, value) per layer
     key/value shape: [batch, num_kv_heads, compression_dim, head_dim]
 
     Args:
-        compressed_cache: LTC格式的压缩KV Cache
-        num_kv_heads: KV头数量
-        head_dim: 每个头的维度
+        compressed_cache: LTC format compressed KV Cache
+        num_kv_heads: number of KV heads
+        head_dim: dimension per head
 
     Returns:
-        HuggingFace格式的past_key_values
+        HuggingFace format past_key_values
     """
     num_layers = len(compressed_cache)
     past_key_values = []
@@ -91,14 +91,14 @@ def concatenate_kv_caches(
     cache2: Dict[int, Tuple[torch.Tensor, torch.Tensor]]
 ) -> Dict[int, Tuple[torch.Tensor, torch.Tensor]]:
     """
-    沿序列维度拼接两个KV Cache。
+    Concatenate two KV Caches along the sequence dimension.
 
     Args:
-        cache1: 第一个KV Cache
-        cache2: 第二个KV Cache
+        cache1: first KV Cache
+        cache2: second KV Cache
 
     Returns:
-        拼接后的KV Cache
+        concatenated KV Cache
     """
     result = {}
 
@@ -106,7 +106,7 @@ def concatenate_kv_caches(
         k1, v1 = cache1[layer_idx]
         k2, v2 = cache2[layer_idx]
 
-        # 沿seq_len维度拼接
+        # Concatenate along seq_len dimension
         k_concat = torch.cat([k1, k2], dim=1)
         v_concat = torch.cat([v1, v2], dim=1)
 
@@ -121,15 +121,15 @@ def slice_kv_cache(
     end: int
 ) -> Dict[int, Tuple[torch.Tensor, torch.Tensor]]:
     """
-    切片KV Cache。
+    Slice KV Cache.
 
     Args:
         kv_cache: KV Cache
-        start: 起始位置
-        end: 结束位置
+        start: start position
+        end: end position
 
     Returns:
-        切片后的KV Cache
+        sliced KV Cache
     """
     result = {}
 
@@ -143,13 +143,13 @@ def get_kv_cache_size(
     kv_cache: Dict[int, Tuple[torch.Tensor, torch.Tensor]]
 ) -> Dict[str, float]:
     """
-    计算KV Cache的大小。
+    Calculate KV Cache size.
 
     Args:
         kv_cache: KV Cache
 
     Returns:
-        大小信息字典
+        size information dictionary
     """
     total_bytes = 0
     total_elements = 0
@@ -173,14 +173,14 @@ def move_kv_cache_to_device(
     device: torch.device
 ) -> Dict[int, Tuple[torch.Tensor, torch.Tensor]]:
     """
-    将KV Cache移动到指定设备。
+    Move KV Cache to specified device.
 
     Args:
         kv_cache: KV Cache
-        device: 目标设备
+        device: target device
 
     Returns:
-        移动后的KV Cache
+        moved KV Cache
     """
     result = {}
 

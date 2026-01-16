@@ -1,7 +1,7 @@
 """
-LTC模块训练器
+LTC Module Trainer
 
-负责训练LTC模块，LLM参数保持冻结。
+Responsible for training the LTC module while keeping LLM parameters frozen.
 """
 
 import os
@@ -23,13 +23,13 @@ from ..models.model_loader import load_model, get_model_config
 
 class LTCTrainer:
     """
-    LTC模块训练器。
+    LTC module trainer.
 
-    训练流程:
-    1. 使用LLM处理训练样本，获取KV Cache
-    2. 使用LTC压缩KV Cache
-    3. 计算损失并更新LTC参数
-    4. LLM参数保持冻结
+    Training workflow:
+    1. Process training samples with LLM to obtain KV Cache
+    2. Compress KV Cache using LTC
+    3. Compute loss and update LTC parameters
+    4. Keep LLM parameters frozen
     """
 
     def __init__(
@@ -40,13 +40,13 @@ class LTCTrainer:
         output_dir: str
     ):
         """
-        初始化训练器。
+        Initialize trainer.
 
         Args:
-            model_name_or_path: HuggingFace模型路径
-            ltc_config: LTC模块配置
-            training_config: 训练配置
-            output_dir: 输出目录
+            model_name_or_path: HuggingFace model path
+            ltc_config: LTC module configuration
+            training_config: Training configuration
+            output_dir: Output directory
         """
         self.model_name_or_path = model_name_or_path
         self.ltc_config = ltc_config
@@ -55,27 +55,27 @@ class LTCTrainer:
 
         os.makedirs(output_dir, exist_ok=True)
 
-        # 设备
+        # Device
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        # 加载模型
+        # Load model
         self._setup_model()
 
-        # 初始化LTC
+        # Initialize LTC
         self._setup_ltc()
 
-        # 初始化损失函数
+        # Initialize loss function
         self._setup_loss()
 
-        # 初始化优化器
+        # Initialize optimizer
         self._setup_optimizer()
 
-        # 训练状态
+        # Training state
         self.global_step = 0
         self.best_eval_loss = float('inf')
 
     def _setup_model(self):
-        """设置LLM模型"""
+        """Setup LLM model"""
         print(f"Loading model: {self.model_name_or_path}")
 
         self.model, self.tokenizer = load_model(
@@ -84,14 +84,14 @@ class LTCTrainer:
             device_map="auto"
         )
 
-        # 冻结LLM参数
+        # Freeze LLM parameters
         for param in self.model.parameters():
             param.requires_grad = False
 
         self.model_config = get_model_config(self.model_name_or_path)
 
     def _setup_ltc(self):
-        """设置LTC模块"""
+        """Setup LTC module"""
         self.ltc = LatentThoughtCondenser(
             num_layers=self.ltc_config.get("num_layers", self.model_config["num_layers"]),
             kv_dim=self.ltc_config.get("kv_dim", self.model_config["kv_dim"]),
@@ -102,7 +102,7 @@ class LTCTrainer:
         self.ltc = self.ltc.to(self.device).to(torch.bfloat16)
 
     def _setup_loss(self):
-        """设置损失函数"""
+        """Setup loss function"""
         self.loss_fn = LTCLoss(
             lambda_coverage=self.training_config.get("lambda_coverage", 0.1),
             lambda_orthogonality=self.training_config.get("lambda_orthogonality", 0.01),
@@ -110,7 +110,7 @@ class LTCTrainer:
         )
 
     def _setup_optimizer(self):
-        """设置优化器和学习率调度器"""
+        """Setup optimizer and learning rate scheduler"""
         self.optimizer = AdamW(
             self.ltc.parameters(),
             lr=self.training_config.get("learning_rate", 1e-4),
@@ -120,7 +120,7 @@ class LTCTrainer:
         total_steps = self.training_config.get("total_steps", 50000)
         warmup_steps = self.training_config.get("warmup_steps", 1000)
 
-        # Warmup + Cosine调度
+        # Warmup + Cosine scheduler
         warmup_scheduler = LinearLR(
             self.optimizer,
             start_factor=0.1,
@@ -146,11 +146,11 @@ class LTCTrainer:
         eval_dataset: Optional[LTCTrainingDataset] = None
     ):
         """
-        执行训练循环。
+        Execute training loop.
 
         Args:
-            train_dataset: 训练数据集
-            eval_dataset: 评估数据集（可选）
+            train_dataset: Training dataset
+            eval_dataset: Evaluation dataset (optional)
         """
         batch_size = self.training_config.get("batch_size", 64)
         total_steps = self.training_config.get("total_steps", 50000)
@@ -178,17 +178,17 @@ class LTCTrainer:
         pbar = tqdm(range(total_steps), desc="Training")
 
         for step in pbar:
-            # 获取batch
+            # Get batch
             try:
                 batch = next(train_iter)
             except StopIteration:
                 train_iter = iter(train_loader)
                 batch = next(train_iter)
 
-            # 训练步骤
+            # Training step
             losses = self.training_step(batch)
 
-            # 更新统计
+            # Update statistics
             running_loss += losses["total"].item()
             running_recon += losses["recon"].item()
             running_coverage += losses["coverage"].item()
@@ -196,7 +196,7 @@ class LTCTrainer:
 
             self.global_step += 1
 
-            # 日志
+            # Logging
             if self.global_step % logging_steps == 0:
                 avg_loss = running_loss / logging_steps
                 avg_recon = running_recon / logging_steps
@@ -224,7 +224,7 @@ class LTCTrainer:
                 running_coverage = 0.0
                 running_orthogonality = 0.0
 
-            # 评估
+            # Evaluation
             if eval_dataset and self.global_step % eval_steps == 0:
                 eval_results = self.evaluate(eval_dataset)
                 print(f"\nEval at step {self.global_step}: {eval_results}")
@@ -233,31 +233,31 @@ class LTCTrainer:
                     self.best_eval_loss = eval_results["loss"]
                     self.save_checkpoint(os.path.join(self.output_dir, "best_checkpoint"))
 
-            # 保存
+            # Save
             if self.global_step % save_steps == 0:
                 self.save_checkpoint(
                     os.path.join(self.output_dir, f"checkpoint-{self.global_step}")
                 )
 
-        # 最终保存
+        # Final save
         self.save_checkpoint(os.path.join(self.output_dir, "final_checkpoint"))
 
     def training_step(self, batch: Dict) -> Dict[str, torch.Tensor]:
         """
-        单步训练。
+        Single training step.
 
         Args:
-            batch: 数据batch
+            batch: Data batch
 
         Returns:
-            损失字典
+            Loss dictionary
         """
         self.optimizer.zero_grad()
 
         input_ids = batch["input_ids"].to(self.device)
         attention_mask = batch["attention_mask"].to(self.device)
 
-        # 使用LLM获取KV Cache
+        # Get KV Cache using LLM
         with torch.no_grad():
             outputs = self.model(
                 input_ids=input_ids,
@@ -267,13 +267,13 @@ class LTCTrainer:
             )
             past_key_values = outputs.past_key_values
 
-        # 转换KV Cache格式
+        # Convert KV Cache format
         original_kv = self._convert_kv_cache(past_key_values)
 
-        # LTC压缩
+        # LTC compression
         compressed_kv, attention_weights = self.ltc(original_kv, attention_mask)
 
-        # 计算损失
+        # Compute loss
         losses = self.loss_fn(
             original_kv=original_kv,
             compressed_kv=compressed_kv,
@@ -281,20 +281,20 @@ class LTCTrainer:
             probe_matrix=self.ltc.get_probe_matrix()
         )
 
-        # 反向传播
+        # Backward
         losses["total"].backward()
 
-        # 梯度裁剪
+        # Gradient clipping
         torch.nn.utils.clip_grad_norm_(self.ltc.parameters(), max_norm=1.0)
 
-        # 更新参数
+        # Update parameters
         self.optimizer.step()
         self.scheduler.step()
 
         return losses
 
     def _convert_kv_cache(self, past_key_values) -> Dict:
-        """将HuggingFace格式的KV Cache转换为LTC格式"""
+        """Convert HuggingFace format KV Cache to LTC format"""
         kv_cache = {}
 
         for layer_idx, (key, value) in enumerate(past_key_values):
@@ -308,13 +308,13 @@ class LTCTrainer:
     @torch.no_grad()
     def evaluate(self, eval_dataset: LTCTrainingDataset) -> Dict[str, float]:
         """
-        评估当前模型。
+        Evaluate current model.
 
         Args:
-            eval_dataset: 评估数据集
+            eval_dataset: Evaluation dataset
 
         Returns:
-            评估指标字典
+            Evaluation metrics dictionary
         """
         self.ltc.eval()
 
@@ -368,13 +368,13 @@ class LTCTrainer:
         }
 
     def save_checkpoint(self, path: str):
-        """保存checkpoint"""
+        """Save checkpoint"""
         os.makedirs(path, exist_ok=True)
 
-        # 保存LTC参数
+        # Save LTC parameters
         torch.save(self.ltc.state_dict(), os.path.join(path, "ltc_model.pt"))
 
-        # 保存优化器状态
+        # Save optimizer state
         torch.save({
             "optimizer": self.optimizer.state_dict(),
             "scheduler": self.scheduler.state_dict(),
@@ -382,7 +382,7 @@ class LTCTrainer:
             "best_eval_loss": self.best_eval_loss,
         }, os.path.join(path, "training_state.pt"))
 
-        # 保存配置
+        # Save configuration
         with open(os.path.join(path, "config.json"), "w") as f:
             json.dump({
                 "ltc_config": self.ltc_config,
@@ -393,13 +393,13 @@ class LTCTrainer:
         print(f"Checkpoint saved to {path}")
 
     def load_checkpoint(self, path: str):
-        """加载checkpoint"""
-        # 加载LTC参数
+        """Load checkpoint"""
+        # Load LTC parameters
         self.ltc.load_state_dict(
             torch.load(os.path.join(path, "ltc_model.pt"), map_location=self.device)
         )
 
-        # 加载训练状态
+        # Load training state
         state = torch.load(os.path.join(path, "training_state.pt"), map_location=self.device)
         self.optimizer.load_state_dict(state["optimizer"])
         self.scheduler.load_state_dict(state["scheduler"])
@@ -409,5 +409,5 @@ class LTCTrainer:
         print(f"Checkpoint loaded from {path}, step {self.global_step}")
 
     def _log_metrics(self, metrics: Dict[str, float]):
-        """记录指标（可扩展为wandb等）"""
+        """Log metrics (extensible to wandb, etc.)"""
         pass

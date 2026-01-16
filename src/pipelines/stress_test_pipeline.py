@@ -1,7 +1,7 @@
 """
-压力测试Pipeline
+Stress Test Pipeline
 
-Solver <-> Critic 迭代交互，用于测试方法在长轮次协作下的鲁棒性。
+Solver <-> Critic iterative interaction for testing method robustness under long-round collaboration.
 """
 
 import time
@@ -16,9 +16,9 @@ from ..agents import CriticAgent, SolverAgent
 
 class StressTestPipeline(BasePipeline):
     """
-    压力测试流程: Solver <-> Critic 迭代交互
+    Stress test workflow: Solver <-> Critic iterative interaction
 
-    用于测试方法在长轮次协作下的鲁棒性。
+    Used for testing method robustness under long-round collaboration.
     """
 
     def __init__(
@@ -28,18 +28,18 @@ class StressTestPipeline(BasePipeline):
         communication_mode: str = "condenseflow"
     ):
         """
-        初始化压力测试Pipeline。
+        Initialize stress test Pipeline.
 
         Args:
-            model_wrapper: LTC封装的模型
-            max_rounds: 最大迭代轮数
-            communication_mode: 通信模式
+            model_wrapper: LTC wrapped model
+            max_rounds: Maximum iteration rounds
+            communication_mode: Communication mode
         """
         super().__init__(model_wrapper, communication_mode)
 
         self.max_rounds = max_rounds
 
-        # 初始化Agent
+        # Initialize Agents
         self.solver = SolverAgent(model_wrapper, communication_mode)
         self.critic = CriticAgent(model_wrapper, communication_mode)
 
@@ -50,25 +50,25 @@ class StressTestPipeline(BasePipeline):
         verbose: bool = False
     ) -> Dict[str, Any]:
         """
-        执行迭代协作流程。
+        Execute iterative collaboration workflow.
 
-        每轮:
-        1. Solver生成/修正答案
-        2. Critic评估答案
-        3. 如果正确或达到max_rounds则停止
+        Each round:
+        1. Solver generates/corrects answer
+        2. Critic evaluates answer
+        3. Stop if correct or max_rounds reached
 
         Args:
-            question: 输入问题
-            early_stop: 如果Critic认为答案正确则提前停止
-            verbose: 是否输出详细信息
+            question: Input question
+            early_stop: Stop early if Critic approves the answer
+            verbose: Whether to output detailed information
 
         Returns:
-            - answer: 最终答案
-            - num_rounds: 实际迭代轮数
-            - round_outputs: 每轮的输出
-            - memory_stats: 内存使用统计
-            - timing_stats: 时间统计
-            - early_stopped: 是否提前停止
+            - answer: Final answer
+            - num_rounds: Actual iteration rounds
+            - round_outputs: Outputs for each round
+            - memory_stats: Memory usage statistics
+            - timing_stats: Timing statistics
+            - early_stopped: Whether stopped early
         """
         self.reset_stats()
         self._clear_memory_stats()
@@ -78,7 +78,7 @@ class StressTestPipeline(BasePipeline):
         current_text = None
         early_stopped = False
 
-        # 记录初始内存
+        # Record initial memory
         self._record_memory("initial")
 
         total_start = time.time()
@@ -93,7 +93,7 @@ class StressTestPipeline(BasePipeline):
 
             round_data = {"round": round_idx + 1}
 
-            # Solver生成/修正答案
+            # Solver generates/corrects answer
             self._start_timer(f"solver_round_{round_idx}")
             solver_response, solver_latent = self.solver.process(
                 question=question,
@@ -109,7 +109,7 @@ class StressTestPipeline(BasePipeline):
             if verbose:
                 print(f"Solver:\n{solver_response[:300]}...\n")
 
-            # Critic评估答案
+            # Critic evaluates answer
             self._start_timer(f"critic_round_{round_idx}")
             critic_response, critic_latent = self.critic.process(
                 question=question,
@@ -125,13 +125,13 @@ class StressTestPipeline(BasePipeline):
             if verbose:
                 print(f"Critic:\n{critic_response[:300]}...\n")
 
-            # 记录本轮内存
+            # Record this round's memory
             self._record_memory(f"round_{round_idx}")
 
             round_data["time"] = time.time() - round_start
             round_outputs.append(round_data)
 
-            # 检查是否应该提前停止
+            # Check if should stop early
             if early_stop and self.critic.is_correct(critic_response):
                 if verbose:
                     print(f"Early stopping at round {round_idx + 1}: Critic approved the answer")
@@ -141,7 +141,7 @@ class StressTestPipeline(BasePipeline):
         total_time = time.time() - total_start
         self._timing_stats["total"] = total_time
 
-        # 提取最终答案（从最后一轮的Solver响应）
+        # Extract final answer (from last round's Solver response)
         final_solver_response = round_outputs[-1]["solver_response"]
         final_answer = self.solver.extract_answer(final_solver_response)
 
@@ -163,15 +163,15 @@ class StressTestPipeline(BasePipeline):
         verbose: bool = False
     ) -> Dict[str, Any]:
         """
-        运行固定轮数的迭代。
+        Run fixed number of iteration rounds.
 
         Args:
-            question: 输入问题
-            num_rounds: 固定轮数
-            verbose: 是否输出详细信息
+            question: Input question
+            num_rounds: Fixed number of rounds
+            verbose: Whether to output detailed information
 
         Returns:
-            结果字典
+            Result dictionary
         """
         original_max = self.max_rounds
         self.max_rounds = num_rounds
@@ -187,14 +187,14 @@ class StressTestPipeline(BasePipeline):
         num_rounds: int = 10
     ) -> Dict[str, Any]:
         """
-        分析内存随轮数增长的情况。
+        Analyze memory growth over rounds.
 
         Args:
-            question: 输入问题
-            num_rounds: 测试轮数
+            question: Input question
+            num_rounds: Number of test rounds
 
         Returns:
-            内存增长分析结果
+            Memory growth analysis results
         """
         result = self.run_fixed_rounds(question, num_rounds, verbose=False)
 
@@ -210,7 +210,7 @@ class StressTestPipeline(BasePipeline):
                 "max_allocated_mb": stats["max_allocated_mb"],
             })
 
-        # 计算增长率
+        # Calculate growth rate
         if len(memory_growth) >= 2:
             first_mem = memory_growth[0]["allocated_mb"]
             last_mem = memory_growth[-1]["allocated_mb"]

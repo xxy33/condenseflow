@@ -1,5 +1,5 @@
 """
-标准4-Agent协作Pipeline
+Standard 4-Agent Collaboration Pipeline
 
 Planner -> Critic -> Refiner -> Solver
 """
@@ -16,12 +16,12 @@ from ..agents import PlannerAgent, CriticAgent, RefinerAgent, SolverAgent
 
 class StandardPipeline(BasePipeline):
     """
-    标准4-Agent协作流程: Planner -> Critic -> Refiner -> Solver
+    Standard 4-Agent collaboration workflow: Planner -> Critic -> Refiner -> Solver
 
-    通信协议:
-    - 每个Agent接收上游的压缩KV Cache
-    - 处理后将自己的KV Cache压缩后传给下游
-    - 只有最终Solver输出文本答案
+    Communication protocol:
+    - Each Agent receives compressed KV Cache from upstream
+    - After processing, compresses its own KV Cache and passes to downstream
+    - Only the final Solver outputs text answer
     """
 
     def __init__(
@@ -30,15 +30,15 @@ class StandardPipeline(BasePipeline):
         communication_mode: str = "condenseflow"
     ):
         """
-        初始化标准Pipeline。
+        Initialize standard Pipeline.
 
         Args:
-            model_wrapper: LTC封装的模型
-            communication_mode: 通信模式
+            model_wrapper: LTC wrapped model
+            communication_mode: Communication mode
         """
         super().__init__(model_wrapper, communication_mode)
 
-        # 初始化4个Agent
+        # Initialize 4 Agents
         self.planner = PlannerAgent(model_wrapper, communication_mode)
         self.critic = CriticAgent(model_wrapper, communication_mode)
         self.refiner = RefinerAgent(model_wrapper, communication_mode)
@@ -52,17 +52,17 @@ class StandardPipeline(BasePipeline):
         verbose: bool = False
     ) -> Dict[str, Any]:
         """
-        执行完整协作流程。
+        Execute complete collaboration workflow.
 
         Args:
-            question: 输入问题
-            verbose: 是否输出详细信息
+            question: Input question
+            verbose: Whether to output detailed information
 
         Returns:
-            - answer: 最终答案
-            - intermediate_outputs: 各Agent的中间输出
-            - memory_stats: 内存使用统计
-            - timing_stats: 时间统计
+            - answer: Final answer
+            - intermediate_outputs: Intermediate outputs from each Agent
+            - memory_stats: Memory usage statistics
+            - timing_stats: Timing statistics
         """
         self.reset_stats()
         self._clear_memory_stats()
@@ -71,7 +71,7 @@ class StandardPipeline(BasePipeline):
         current_latent = None
         current_text = None
 
-        # 记录初始内存
+        # Record initial memory
         self._record_memory("initial")
 
         total_start = time.time()
@@ -169,7 +169,7 @@ class StandardPipeline(BasePipeline):
         total_time = time.time() - total_start
         self._timing_stats["total"] = total_time
 
-        # 提取最终答案
+        # Extract final answer
         final_answer = self.solver.extract_answer(solver_response)
 
         return {
@@ -187,15 +187,15 @@ class StandardPipeline(BasePipeline):
         verbose: bool = False
     ) -> Dict[str, Any]:
         """
-        使用自定义Agent序列运行。
+        Run with custom Agent sequence.
 
         Args:
-            question: 输入问题
-            agent_sequence: Agent名称列表，如 ["planner", "critic", "solver"]
-            verbose: 是否输出详细信息
+            question: Input question
+            agent_sequence: List of Agent names, e.g., ["planner", "critic", "solver"]
+            verbose: Whether to output detailed information
 
         Returns:
-            结果字典
+            Result dictionary
         """
         agent_map = {
             "planner": self.planner,
@@ -237,11 +237,11 @@ class StandardPipeline(BasePipeline):
 
         self._timing_stats["total"] = time.time() - total_start
 
-        # 最后一个Agent的输出作为答案
+        # Use last Agent's output as answer
         last_agent = agent_sequence[-1].lower()
         final_response = intermediate_outputs[last_agent]
 
-        # 如果最后是solver，提取答案
+        # If last agent is solver, extract answer
         if last_agent == "solver":
             final_answer = self.solver.extract_answer(final_response)
         else:

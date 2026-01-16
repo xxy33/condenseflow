@@ -1,7 +1,7 @@
 """
-LTC训练数据集
+LTC Training Dataset
 
-支持从GSM8K和MBPP等数据源加载训练数据。
+Supports loading training data from GSM8K, MBPP, and other data sources.
 """
 
 import os
@@ -14,11 +14,11 @@ from tqdm import tqdm
 
 class LTCTrainingDataset(Dataset):
     """
-    LTC训练数据集。
+    LTC training dataset.
 
-    数据来源(与评估benchmark不重叠):
-    - GSM8K训练集: 数学推理
-    - MBPP训练集: 代码生成
+    Data sources (non-overlapping with evaluation benchmarks):
+    - GSM8K training set: Math reasoning
+    - MBPP training set: Code generation
     """
 
     def __init__(
@@ -31,15 +31,15 @@ class LTCTrainingDataset(Dataset):
         precompute_cache: bool = False
     ):
         """
-        初始化数据集。
+        Initialize dataset.
 
         Args:
-            data_sources: 数据源列表 ["gsm8k", "mbpp"]
-            model_name_or_path: 模型路径（用于分词）
-            cache_dir: 缓存目录
-            max_samples_per_source: 每个数据源的最大样本数
-            max_seq_length: 最大序列长度
-            precompute_cache: 是否预计算KV Cache
+            data_sources: List of data sources ["gsm8k", "mbpp"]
+            model_name_or_path: Model path (for tokenization)
+            cache_dir: Cache directory
+            max_samples_per_source: Maximum samples per data source
+            max_seq_length: Maximum sequence length
+            precompute_cache: Whether to precompute KV Cache
         """
         self.data_sources = data_sources
         self.model_name_or_path = model_name_or_path
@@ -47,7 +47,7 @@ class LTCTrainingDataset(Dataset):
         self.max_samples_per_source = max_samples_per_source
         self.max_seq_length = max_seq_length
 
-        # 加载分词器
+        # Load tokenizer
         from transformers import AutoTokenizer
         self.tokenizer = AutoTokenizer.from_pretrained(
             model_name_or_path,
@@ -56,16 +56,16 @@ class LTCTrainingDataset(Dataset):
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
 
-        # 加载数据
+        # Load data
         self.samples = []
         self._load_data()
 
-        # KV Cache缓存
+        # KV Cache cache
         self.kv_cache_dir = os.path.join(cache_dir, "kv_cache")
         os.makedirs(self.kv_cache_dir, exist_ok=True)
 
     def _load_data(self):
-        """加载所有数据源"""
+        """Load all data sources"""
         for source in self.data_sources:
             if source.lower() == "gsm8k":
                 self._load_gsm8k()
@@ -75,7 +75,7 @@ class LTCTrainingDataset(Dataset):
                 print(f"Warning: Unknown data source {source}")
 
     def _load_gsm8k(self):
-        """加载GSM8K数据集"""
+        """Load GSM8K dataset"""
         try:
             from datasets import load_dataset
             dataset = load_dataset("gsm8k", "main", split="train")
@@ -87,7 +87,7 @@ class LTCTrainingDataset(Dataset):
                 question = item["question"]
                 answer = item["answer"]
 
-                # 构建训练样本
+                # Build training sample
                 prompt = f"Question: {question}\n\nLet me solve this step by step.\n"
 
                 self.samples.append({
@@ -100,7 +100,7 @@ class LTCTrainingDataset(Dataset):
             print(f"Failed to load GSM8K: {e}")
 
     def _load_mbpp(self):
-        """加载MBPP数据集"""
+        """Load MBPP dataset"""
         try:
             from datasets import load_dataset
             dataset = load_dataset("mbpp", split="train")
@@ -112,7 +112,7 @@ class LTCTrainingDataset(Dataset):
                 prompt_text = item["text"]
                 code = item["code"]
 
-                # 构建训练样本
+                # Build training sample
                 prompt = f"Task: {prompt_text}\n\nLet me write the code.\n"
 
                 self.samples.append({
@@ -129,16 +129,16 @@ class LTCTrainingDataset(Dataset):
 
     def __getitem__(self, idx: int) -> Dict[str, Any]:
         """
-        获取单个样本。
+        Get single sample.
 
         Returns:
-            - input_ids: 输入token ids
-            - attention_mask: 注意力掩码
-            - prompt: 原始提示词
+            - input_ids: Input token ids
+            - attention_mask: Attention mask
+            - prompt: Original prompt
         """
         sample = self.samples[idx]
 
-        # 分词
+        # Tokenize
         encoding = self.tokenizer(
             sample["prompt"],
             max_length=self.max_seq_length,
@@ -156,19 +156,19 @@ class LTCTrainingDataset(Dataset):
         }
 
     def get_kv_cache_path(self, idx: int) -> str:
-        """获取KV Cache缓存路径"""
+        """Get KV Cache cache path"""
         return os.path.join(self.kv_cache_dir, f"kv_cache_{idx}.pt")
 
     def has_cached_kv(self, idx: int) -> bool:
-        """检查是否有缓存的KV Cache"""
+        """Check if cached KV Cache exists"""
         return os.path.exists(self.get_kv_cache_path(idx))
 
     def save_kv_cache(self, idx: int, kv_cache: Dict):
-        """保存KV Cache到缓存"""
+        """Save KV Cache to cache"""
         torch.save(kv_cache, self.get_kv_cache_path(idx))
 
     def load_kv_cache(self, idx: int) -> Optional[Dict]:
-        """从缓存加载KV Cache"""
+        """Load KV Cache from cache"""
         path = self.get_kv_cache_path(idx)
         if os.path.exists(path):
             return torch.load(path)
@@ -176,7 +176,7 @@ class LTCTrainingDataset(Dataset):
 
 
 def collate_fn(batch: List[Dict]) -> Dict[str, Any]:
-    """数据集的collate函数"""
+    """Dataset collate function"""
     input_ids = torch.stack([item["input_ids"] for item in batch])
     attention_mask = torch.stack([item["attention_mask"] for item in batch])
 
